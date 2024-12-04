@@ -1,0 +1,252 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>td_rentee_atmo.solver &mdash; thermal_solver_1D 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            thermal_solver_1D
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">thermal_solver_1D</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">td_rentee_atmo.solver</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for td_rentee_atmo.solver</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;File containong the definition of the 1D solver.&quot;&quot;&quot;</span>
+
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">td_rentee_atmo.mesher</span> <span class="kn">import</span> <span class="n">Mesher</span><span class="p">,</span> <span class="n">ThermalProtectionLayer</span>
+<span class="kn">from</span> <span class="nn">td_rentee_atmo.solver_inputs</span> <span class="kn">import</span> <span class="n">BoundaryConditions</span><span class="p">,</span> <span class="n">Cell</span><span class="p">,</span> <span class="n">PhysicalParameters</span><span class="p">,</span> <span class="n">boltzmann_constant</span>
+
+
+<div class="viewcode-block" id="ThermalSolver">
+<a class="viewcode-back" href="../../source/td_rentee_atmo.solver.html#td_rentee_atmo.solver.ThermalSolver">[docs]</a>
+<span class="k">class</span> <span class="nc">ThermalSolver</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;1D thermal solver.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">meshing</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Cell</span><span class="p">],</span> <span class="n">delta_x</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">boundary_conditions</span><span class="p">:</span> <span class="n">BoundaryConditions</span><span class="p">)</span><span class="o">-&gt;</span><span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize solver.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            delta_x (float): x step.</span>
+<span class="sd">            delta_t (float): y step.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">input_meshing</span> <span class="o">=</span> <span class="n">meshing</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delta_x</span> <span class="o">=</span> <span class="n">delta_x</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delta_t</span> <span class="o">=</span> <span class="n">delta_t</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cell_stability_coefficients</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_s</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verify_cell_stability_coefficients</span><span class="p">()</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">boundary_conditions</span> <span class="o">=</span> <span class="n">boundary_conditions</span>
+
+<div class="viewcode-block" id="ThermalSolver.compute_s">
+<a class="viewcode-back" href="../../source/td_rentee_atmo.solver.html#td_rentee_atmo.solver.ThermalSolver.compute_s">[docs]</a>
+    <span class="k">def</span> <span class="nf">compute_s</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">-&gt;</span><span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute the dictionnary associating to each cell of the meshing the stability value. (should be &lt; 1/2)  </span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            dict[int, float]: Dictionnary associating to each cell of the meshing the stability.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cell_stability_coefficients</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">cell_id</span><span class="p">,</span> <span class="n">cell</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_meshing</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">cell_stability_coefficients</span><span class="p">[</span><span class="n">cell_id</span><span class="p">]</span> <span class="o">=</span><span class="n">cell</span><span class="o">.</span><span class="n">physical_parameters</span><span class="o">.</span><span class="n">k</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta_t</span> <span class="o">/</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">delta_x</span><span class="o">*</span><span class="mf">1e-3</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">cell</span><span class="o">.</span><span class="n">physical_parameters</span><span class="o">.</span><span class="n">rho</span><span class="o">*</span> <span class="n">cell</span><span class="o">.</span><span class="n">physical_parameters</span><span class="o">.</span><span class="n">cp</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cell_stability_coefficients</span></div>
+
+    
+<div class="viewcode-block" id="ThermalSolver.verify_cell_stability_coefficients">
+<a class="viewcode-back" href="../../source/td_rentee_atmo.solver.html#td_rentee_atmo.solver.ThermalSolver.verify_cell_stability_coefficients">[docs]</a>
+    <span class="k">def</span> <span class="nf">verify_cell_stability_coefficients</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">-&gt;</span><span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Verify that all cell stability coefficients are &lt; 1/2.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">cell_id</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cell_stability_coefficients</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">s</span> <span class="o">&gt;=</span> <span class="mf">0.5</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Error: Cell </span><span class="si">{</span><span class="n">cell_id</span><span class="si">}</span><span class="s1"> has a stability coefficient </span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s1"> which is greater than 1/2.&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Meshing stability verified successfully !&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ThermalSolver.solve">
+<a class="viewcode-back" href="../../source/td_rentee_atmo.solver.html#td_rentee_atmo.solver.ThermalSolver.solve">[docs]</a>
+    <span class="k">def</span> <span class="nf">solve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">duration_s</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span><span class="o">-&gt;</span><span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Cell</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Solve the Thermal problem.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            duration_s (float): Amount of time of the simulation.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            dict[int, Cell]: Dictionnary containing the meshing for each instant.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">temporal_meshing_solution</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_meshing</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="c1"># Reinitialize Meshing Solution</span>
+        <span class="n">first_non_ablated_cell</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">first_non_ablated_cell</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">duration_s</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta_t</span><span class="p">))</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">precedent_meshing_temp</span> <span class="o">=</span> <span class="p">{</span><span class="n">cell_id</span> <span class="p">:</span> <span class="n">cell</span><span class="o">.</span><span class="n">temperature</span><span class="p">[</span><span class="n">t</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">cell_id</span><span class="p">,</span> <span class="n">cell</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_meshing</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+            <span class="n">new_meshing_temp</span> <span class="o">=</span> <span class="n">precedent_meshing_temp</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="c1"># Dirichlet condition</span>
+            <span class="n">flux_conv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundary_conditions</span><span class="o">.</span><span class="n">conv_flux</span>
+            <span class="n">incident_flux</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundary_conditions</span><span class="o">.</span><span class="n">alpha_p</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">boundary_conditions</span><span class="o">.</span><span class="n">incident_flux</span>
+            <span class="n">flux_rad</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundary_conditions</span><span class="o">.</span><span class="n">alpha_p</span><span class="o">*</span><span class="n">boltzmann_constant</span><span class="o">*</span><span class="n">new_meshing_temp</span><span class="p">[</span><span class="n">first_non_ablated_cell</span><span class="p">]</span><span class="o">**</span><span class="mi">4</span>
+            <span class="k">if</span> <span class="n">flux_rad</span> <span class="o">&gt;=</span> <span class="n">incident_flux</span><span class="p">:</span>
+                <span class="n">flux_rad</span> <span class="o">=</span> <span class="n">incident_flux</span>
+            <span class="n">new_meshing_temp</span><span class="p">[</span><span class="n">first_non_ablated_cell</span><span class="p">]</span> <span class="o">=</span> <span class="n">precedent_meshing_temp</span><span class="p">[</span><span class="n">first_non_ablated_cell</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">2</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">delta_x</span><span class="o">*</span><span class="mf">1e-3</span><span class="o">*</span><span class="p">(</span><span class="n">flux_rad</span> <span class="o">-</span> <span class="n">incident_flux</span><span class="o">-</span> <span class="n">flux_conv</span><span class="p">)</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">input_meshing</span><span class="p">[</span><span class="n">first_non_ablated_cell</span><span class="p">]</span><span class="o">.</span><span class="n">physical_parameters</span><span class="o">.</span><span class="n">k</span>
+            
+            <span class="c1"># Neumann condition</span>
+            <span class="n">new_meshing_temp</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">new_meshing_temp</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundary_conditions</span><span class="o">.</span><span class="n">boundary_temperature</span>
+            
+            <span class="k">for</span> <span class="n">cell_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">first_non_ablated_cell</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_meshing_temp</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+                <span class="n">new_meshing_temp</span><span class="p">[</span><span class="n">cell_id</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cell_stability_coefficients</span><span class="p">[</span><span class="n">cell_id</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">precedent_meshing_temp</span><span class="p">[</span><span class="n">cell_id</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="n">precedent_meshing_temp</span><span class="p">[</span><span class="n">cell_id</span><span class="p">]</span><span class="o">+</span> <span class="n">precedent_meshing_temp</span><span class="p">[</span><span class="n">cell_id</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="n">precedent_meshing_temp</span><span class="p">[</span><span class="n">cell_id</span><span class="p">]</span>
+
+            <span class="c1"># Ablation in the side opposite of the boundary</span>
+            <span class="k">for</span> <span class="n">cell_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">first_non_ablated_cell</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_meshing_temp</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>   
+                <span class="k">if</span> <span class="n">new_meshing_temp</span><span class="p">[</span><span class="n">cell_id</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">temporal_meshing_solution</span><span class="p">[</span><span class="n">cell_id</span><span class="p">]</span><span class="o">.</span><span class="n">physical_parameters</span><span class="o">.</span><span class="n">ablation_temperature</span><span class="p">:</span>
+                   <span class="n">new_meshing_temp</span><span class="p">[</span><span class="n">cell_id</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+                   <span class="n">first_non_ablated_cell</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">break</span>
+
+
+            <span class="k">if</span> <span class="n">first_non_ablated_cell</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">cell_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">first_non_ablated_cell</span><span class="p">):</span>
+                    <span class="n">new_meshing_temp</span><span class="p">[</span><span class="n">cell_id</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+            <span class="k">for</span> <span class="n">cell_id</span><span class="p">,</span> <span class="n">cell</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">temporal_meshing_solution</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">cell</span><span class="o">.</span><span class="n">temperature</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_meshing_temp</span><span class="p">[</span><span class="n">cell_id</span><span class="p">]</span>
+            
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">temporal_meshing_solution</span></div>
+
+
+<div class="viewcode-block" id="ThermalSolver.print_solution">
+<a class="viewcode-back" href="../../source/td_rentee_atmo.solver.html#td_rentee_atmo.solver.ThermalSolver.print_solution">[docs]</a>
+    <span class="k">def</span> <span class="nf">print_solution</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">-&gt;</span><span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Print the meshing&#39;s solution.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">temporal_meshing_solution</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">temperature</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Time </span><span class="si">{</span><span class="n">t</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">delta_t</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s1">&#39;|</span><span class="si">{</span><span class="n">cell_data</span><span class="o">.</span><span class="n">temperature</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="si">}</span><span class="s1">°C&#39;</span> <span class="k">for</span> <span class="n">cell_data</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">temporal_meshing_solution</span><span class="o">.</span><span class="n">values</span><span class="p">()]))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;------------------------------------------------------------------------&quot;</span><span class="p">)</span></div>
+</div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span> <span class="c1"># pragma: no cover</span>
+    <span class="n">cork_params</span> <span class="o">=</span><span class="n">PhysicalParameters</span><span class="p">(</span>
+        <span class="n">material_name</span><span class="o">=</span><span class="s1">&#39;cork&#39;</span><span class="p">,</span>
+        <span class="n">ablation_temperature</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+        <span class="n">rho</span><span class="o">=</span><span class="mi">120</span><span class="p">,</span>
+        <span class="n">cp</span> <span class="o">=</span> <span class="mi">1900</span><span class="p">,</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="mf">0.04</span>
+    <span class="p">)</span>
+
+    <span class="n">silica_params</span> <span class="o">=</span><span class="n">PhysicalParameters</span><span class="p">(</span> 
+        <span class="n">material_name</span><span class="o">=</span><span class="s1">&#39;LI-900 tiles&#39;</span><span class="p">,</span>
+        <span class="n">ablation_temperature</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
+        <span class="n">rho</span><span class="o">=</span><span class="mi">144</span><span class="p">,</span>
+        <span class="n">cp</span> <span class="o">=</span> <span class="mi">1250</span><span class="p">,</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="mf">0.02</span>
+    <span class="p">)</span>
+
+    <span class="n">layers</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ThermalProtectionLayer</span><span class="p">(</span><span class="n">width_mm</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">t0</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">physical_parameter_m</span><span class="o">=</span><span class="n">cork_params</span><span class="p">),</span>
+        <span class="n">ThermalProtectionLayer</span><span class="p">(</span><span class="n">width_mm</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">t0</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">physical_parameter_m</span><span class="o">=</span><span class="n">silica_params</span><span class="p">),</span>
+    <span class="p">]</span>
+
+    <span class="n">delta_x</span> <span class="o">=</span> <span class="mf">0.5</span>
+    <span class="n">delta_t</span> <span class="o">=</span> <span class="mf">0.05</span>
+    <span class="n">mesher</span> <span class="o">=</span> <span class="n">Mesher</span><span class="p">()</span>
+    <span class="n">mesh</span> <span class="o">=</span> <span class="n">mesher</span><span class="o">.</span><span class="n">mesh</span><span class="p">(</span><span class="n">layers</span><span class="p">,</span> <span class="n">delta_x</span><span class="p">)</span>
+    <span class="n">mesher</span><span class="o">.</span><span class="n">print_meshing</span><span class="p">()</span>
+
+    <span class="n">hypersonic_conditions</span> <span class="o">=</span> <span class="n">BoundaryConditions</span><span class="p">(</span>
+        <span class="n">boundary_temperature</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span>
+        <span class="n">alpha_p</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span>
+        <span class="n">incident_flux</span><span class="o">=</span><span class="mf">30e3</span><span class="p">,</span>
+        <span class="n">conv_flux</span><span class="o">=</span><span class="mf">5e3</span>
+    <span class="p">)</span>
+
+    <span class="n">solver</span> <span class="o">=</span> <span class="n">ThermalSolver</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">delta_x</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">,</span> <span class="n">hypersonic_conditions</span><span class="p">)</span>
+    
+    <span class="n">solver</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+    <span class="n">solver</span><span class="o">.</span><span class="n">print_solution</span><span class="p">()</span>
+    <span class="c1">#solver.temporal_meshing_solution[int(len(solver.temporal_meshing_solution)/2)].print_temperature(delta_t)</span>
+    <span class="n">solver</span><span class="o">.</span><span class="n">temporal_meshing_solution</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">print_temperature</span><span class="p">(</span><span class="n">delta_t</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Arnaud SOMVILLE.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
