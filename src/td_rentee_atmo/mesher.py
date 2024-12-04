@@ -81,7 +81,7 @@ class Mesher:
         for i, cell in self.meshing.items():
             print(f"From {i*self.delta_x}mm : {cell.physical_parameters.material_name}")
     
-if __name__ == '__main__':
+if __name__ == '__main__': # pragma: no cover
     cork_params =PhysicalParameters(
         material_name='cork',
         ablation_temperature=10000,

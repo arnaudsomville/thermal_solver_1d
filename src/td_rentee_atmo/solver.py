@@ -96,7 +96,7 @@ class ThermalSolver:
             print(''.join([f'|{cell_data.temperature[t]}°C' for cell_data in self.temporal_meshing_solution.values()]))
             print("------------------------------------------------------------------------")
 
-if __name__ == '__main__':
+if __name__ == '__main__': # pragma: no cover
     cork_params =PhysicalParameters(
         material_name='cork',
         ablation_temperature=1000,
