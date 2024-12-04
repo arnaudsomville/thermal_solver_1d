@@ -18,6 +18,7 @@ boltzmann_constant = 5.67e-8
 class PhysicalParameters:
     """Physical parameters."""
     material_name: str
+    ablation_temperature: float
     rho: float # Material density
     cp: float # Specific heat capacity
     k: float # Thermal conductivity

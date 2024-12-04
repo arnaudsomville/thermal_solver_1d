@@ -84,6 +84,7 @@ class Mesher:
 if __name__ == '__main__':
     cork_params =PhysicalParameters(
         material_name='cork',
+        ablation_temperature=10000,
         rho=120,
         cp = 1900,
         k = 0.04
@@ -91,6 +92,7 @@ if __name__ == '__main__':
 
     silica_params =PhysicalParameters( 
         material_name='LI-900 tiles',
+        ablation_temperature=10000,
         rho=144,
         cp = 1250,
         k = 0.02

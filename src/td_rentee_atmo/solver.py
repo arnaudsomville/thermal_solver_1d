@@ -52,25 +52,40 @@ class ThermalSolver:
 
         """
         self.temporal_meshing_solution = self.input_meshing.copy() # Reinitialize Meshing Solution
-        for t in range(1, int(np.ceil(duration_s / self.delta_t)) + 1):
+        first_non_ablated_cell = 0
+        for t in range(first_non_ablated_cell+1, int(np.ceil(duration_s / self.delta_t)) + 1):
             precedent_meshing_temp = {cell_id : cell.temperature[t-1] for cell_id, cell in self.input_meshing.items()}
             new_meshing_temp = precedent_meshing_temp.copy()
             # Dirichlet condition
             flux_conv = self.boundary_conditions.conv_flux
             incident_flux = self.boundary_conditions.alpha_p*self.boundary_conditions.incident_flux
-            flux_rad = self.boundary_conditions.alpha_p*boltzmann_constant*new_meshing_temp[0]**4
+            flux_rad = self.boundary_conditions.alpha_p*boltzmann_constant*new_meshing_temp[first_non_ablated_cell]**4
             if flux_rad >= incident_flux:
                 flux_rad = incident_flux
-            new_meshing_temp[0] = precedent_meshing_temp[1] - 2*self.delta_x*1e-3*(flux_rad - incident_flux- flux_conv)/self.input_meshing[0].physical_parameters.k
+            new_meshing_temp[first_non_ablated_cell] = precedent_meshing_temp[first_non_ablated_cell+1] - 2*self.delta_x*1e-3*(flux_rad - incident_flux- flux_conv)/self.input_meshing[first_non_ablated_cell].physical_parameters.k
             
             # Neumann condition
             new_meshing_temp[len(new_meshing_temp)-1] = self.boundary_conditions.boundary_temperature
             
-            for cell_id in range(1, len(new_meshing_temp)-1):
+            for cell_id in range(first_non_ablated_cell+1, len(new_meshing_temp)-1):
                 new_meshing_temp[cell_id] = self.cell_stability_coefficients[cell_id]*(precedent_meshing_temp[cell_id-1] -2*precedent_meshing_temp[cell_id]+ precedent_meshing_temp[cell_id+1]) + precedent_meshing_temp[cell_id]
-            
+
+            # Ablation in the side opposite of the boundary
+            for cell_id in range(first_non_ablated_cell, len(new_meshing_temp)-1):   
+                if new_meshing_temp[cell_id] >= self.temporal_meshing_solution[cell_id].physical_parameters.ablation_temperature:
+                   new_meshing_temp[cell_id] = -1
+                   first_non_ablated_cell += 1
+                else:
+                    break
+
+
+            if first_non_ablated_cell > 0:
+                for cell_id in range(0, first_non_ablated_cell):
+                    new_meshing_temp[cell_id] = -1
+
             for cell_id, cell in self.temporal_meshing_solution.items():
                 cell.temperature[t] = new_meshing_temp[cell_id]
+            
 
         return self.temporal_meshing_solution
 
@@ -84,6 +99,7 @@ class ThermalSolver:
 if __name__ == '__main__':
     cork_params =PhysicalParameters(
         material_name='cork',
+        ablation_temperature=1000,
         rho=120,
         cp = 1900,
         k = 0.04
@@ -91,14 +107,15 @@ if __name__ == '__main__':
 
     silica_params =PhysicalParameters( 
         material_name='LI-900 tiles',
+        ablation_temperature=10000,
         rho=144,
         cp = 1250,
         k = 0.02
     )
 
     layers = [
-        ThermalProtectionLayer(width_mm=32, t0=30, physical_parameter_m=silica_params),
         ThermalProtectionLayer(width_mm=50, t0=20, physical_parameter_m=cork_params),
+        ThermalProtectionLayer(width_mm=32, t0=30, physical_parameter_m=silica_params),
     ]
 
     delta_x = 0.5
@@ -118,5 +135,5 @@ if __name__ == '__main__':
     
     solver.solve(100)
     solver.print_solution()
-    solver.temporal_meshing_solution[int(len(solver.temporal_meshing_solution)/2)].print_temperature(delta_t)
+    #solver.temporal_meshing_solution[int(len(solver.temporal_meshing_solution)/2)].print_temperature(delta_t)
     solver.temporal_meshing_solution[0].print_temperature(delta_t)
