@@ -86,6 +86,10 @@ class ThermalSolver:
             for cell_id, cell in self.temporal_meshing_solution.items():
                 cell.temperature[t] = new_meshing_temp[cell_id]
             
+            if first_non_ablated_cell >= len(new_meshing_temp)-2:
+                print(f"Thermal protection completely burned before the complete simulation. It last {t*self.delta_t}s")
+                return self.temporal_meshing_solution
+            
 
         return self.temporal_meshing_solution
 
@@ -99,7 +103,7 @@ class ThermalSolver:
 if __name__ == '__main__': # pragma: no cover
     cork_params =PhysicalParameters(
         material_name='cork',
-        ablation_temperature=1000,
+        ablation_temperature=485,
         rho=120,
         cp = 1900,
         k = 0.04
@@ -107,15 +111,15 @@ if __name__ == '__main__': # pragma: no cover
 
     silica_params =PhysicalParameters( 
         material_name='LI-900 tiles',
-        ablation_temperature=10000,
+        ablation_temperature=1500,
         rho=144,
         cp = 1250,
         k = 0.02
     )
 
     layers = [
-        ThermalProtectionLayer(width_mm=50, t0=20, physical_parameter_m=cork_params),
         ThermalProtectionLayer(width_mm=32, t0=30, physical_parameter_m=silica_params),
+        ThermalProtectionLayer(width_mm=50, t0=20, physical_parameter_m=cork_params),
     ]
 
     delta_x = 0.5

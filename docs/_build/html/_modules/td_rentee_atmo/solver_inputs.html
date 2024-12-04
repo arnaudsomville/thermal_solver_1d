@@ -1,0 +1,163 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>td_rentee_atmo.solver_inputs &mdash; thermal_solver_1D 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            thermal_solver_1D
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">thermal_solver_1D</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">td_rentee_atmo.solver_inputs</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for td_rentee_atmo.solver_inputs</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Definition of all the inputs of the model.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<div class="viewcode-block" id="BoundaryConditions">
+<a class="viewcode-back" href="../../td_rentee_atmo.solver_inputs.html#td_rentee_atmo.solver_inputs.BoundaryConditions">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">BoundaryConditions</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Define the boundary conditions.&quot;&quot;&quot;</span>
+    <span class="n">boundary_temperature</span><span class="p">:</span> <span class="nb">float</span> <span class="c1"># T(x=e, t)</span>
+    <span class="n">alpha_p</span><span class="p">:</span> <span class="nb">float</span> <span class="c1"># Emissivity coefficient of the boundary material, value between 0 and 1</span>
+    <span class="n">incident_flux</span><span class="p">:</span> <span class="nb">float</span> <span class="c1"># Incident flux in W/m2</span>
+    <span class="n">conv_flux</span><span class="p">:</span> <span class="nb">float</span> <span class="c1"># Conv flux in W/m2</span></div>
+
+
+<span class="n">boltzmann_constant</span> <span class="o">=</span> <span class="mf">5.67e-8</span>
+
+<div class="viewcode-block" id="PhysicalParameters">
+<a class="viewcode-back" href="../../td_rentee_atmo.solver_inputs.html#td_rentee_atmo.solver_inputs.PhysicalParameters">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">PhysicalParameters</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Physical parameters.&quot;&quot;&quot;</span>
+    <span class="n">material_name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">ablation_temperature</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">rho</span><span class="p">:</span> <span class="nb">float</span> <span class="c1"># Material density</span>
+    <span class="n">cp</span><span class="p">:</span> <span class="nb">float</span> <span class="c1"># Specific heat capacity</span>
+    <span class="n">k</span><span class="p">:</span> <span class="nb">float</span> <span class="c1"># Thermal conductivity</span></div>
+
+
+<div class="viewcode-block" id="Cell">
+<a class="viewcode-back" href="../../td_rentee_atmo.solver_inputs.html#td_rentee_atmo.solver_inputs.Cell">[docs]</a>
+<span class="k">class</span> <span class="nc">Cell</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Define a single cell.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initial_temperature</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">physical_parameters</span><span class="p">:</span> <span class="n">PhysicalParameters</span><span class="p">)</span><span class="o">-&gt;</span><span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;_summary_</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            initial_temperature (float): T0</span>
+<span class="sd">            initial_temperature (PhysicalParameters): Physical parameters of the cell</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">temperature</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span> <span class="p">:</span> <span class="n">initial_temperature</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">physical_parameters</span><span class="p">:</span> <span class="n">PhysicalParameters</span> <span class="o">=</span> <span class="n">physical_parameters</span>
+    
+<div class="viewcode-block" id="Cell.update_temperature">
+<a class="viewcode-back" href="../../td_rentee_atmo.solver_inputs.html#td_rentee_atmo.solver_inputs.Cell.update_temperature">[docs]</a>
+    <span class="k">def</span> <span class="nf">update_temperature</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_temperature</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">time_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span><span class="o">-&gt;</span><span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the temperature at the current time step.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">temperature</span><span class="p">[</span><span class="n">time_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_temperature</span></div>
+
+    
+<div class="viewcode-block" id="Cell.print_temperature">
+<a class="viewcode-back" href="../../td_rentee_atmo.solver_inputs.html#td_rentee_atmo.solver_inputs.Cell.print_temperature">[docs]</a>
+    <span class="k">def</span> <span class="nf">print_temperature</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span> <span class="c1"># pragma: no cover</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Print the temperature.&quot;&quot;&quot;</span>
+        <span class="n">time_steps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">temperature</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+        <span class="n">temperatures</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">temperature</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">time_steps</span><span class="o">*</span><span class="n">delta_t</span><span class="p">,</span> <span class="n">temperatures</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">physical_parameters</span><span class="o">.</span><span class="n">material_name</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Time (s)&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Temperature (K)&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Arnaud SOMVILLE.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

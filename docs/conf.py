@@ -1,3 +1,5 @@
+import os
+import sys
 
 # -- Project information -----------------------------------------------------
 project = "thermal_solver_1D"
