@@ -39,7 +39,7 @@ class Cell:
         """Update the temperature at the current time step."""
         self.temperature[time_id] = new_temperature
     
-    def print_temperature(self, delta_t: float):
+    def print_temperature(self, delta_t: float): # pragme: no cover
         """Print the temperature."""
         time_steps = np.array(list(self.temperature.keys()))
         temperatures = list(self.temperature.values())

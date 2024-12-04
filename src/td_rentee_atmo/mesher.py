@@ -18,7 +18,7 @@ class Mesher:
     def __init__(self)->None:
         """Initialize empty Mesh."""
         self.meshing: dict[int, Cell] = {}
-        self.delta_x = 0
+        self.delta_x: float = 0
         pass
 
     def set_meshing(self, meshing: dict[int, Cell], delta_x: float)->None:

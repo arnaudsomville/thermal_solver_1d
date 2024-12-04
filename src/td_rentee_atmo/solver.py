@@ -41,14 +41,14 @@ class ThermalSolver:
                 raise ValueError(f'Error: Cell {cell_id} has a stability coefficient {s} which is greater than 1/2.')
         print("Meshing stability verified successfully !")
 
-    def solve(self, duration_s: float)->dict[int, dict[int, Cell]]:
+    def solve(self, duration_s: float)->dict[int, Cell]:
         """Solve the Thermal problem.
 
         Args:
             duration_s (float): Amount of time of the simulation.
 
         Returns:
-            dict[int, dict[int, Cell]]: Dictionnary containing the meshing for each instant.
+            dict[int, Cell]: Dictionnary containing the meshing for each instant.
 
         """
         self.temporal_meshing_solution = self.input_meshing.copy() # Reinitialize Meshing Solution
